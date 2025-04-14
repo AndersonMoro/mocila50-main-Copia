@@ -17,6 +17,9 @@ function EditItem() {
     observacoes: ''
   });
   
+  // Verifica se a categoria atual requer data de validade
+  const requereValidade = ['alimentos', 'agua', 'medicamentos'].includes(formData.categoria);
+  
   useEffect(() => {
     const fetchItem = async () => {
       try {
@@ -69,10 +72,14 @@ function EditItem() {
         categoria: formData.categoria
       };
       
-      // Adiciona campos opcionais apenas para alimentos
-      if (formData.categoria === 'alimentos') {
-        if (formData.validade) updates.validade = formData.validade;
-        if (formData.observacoes) updates.observacoes = formData.observacoes;
+      // Adiciona campos para categorias específicas
+      if (['alimentos', 'agua', 'medicamentos'].includes(formData.categoria)) {
+        updates.validade = formData.validade;
+      }
+      
+      // Adiciona observações se preenchido
+      if (formData.observacoes) {
+        updates.observacoes = formData.observacoes;
       }
       
       const { error } = await supabase
@@ -175,11 +182,11 @@ function EditItem() {
               </select>
             </div>
             
-            {/* Only show validade field for food items */}
-            {formData.categoria === 'alimentos' && (
+            {/* Mostrar campo de validade para alimentos, água e medicamentos */}
+            {requereValidade && (
               <div className="mb-4">
                 <label htmlFor="validade" className="block text-sm font-medium text-gray-700 mb-1">
-                  Data de Validade (opcional)
+                  Data de Validade
                 </label>
                 <input
                   type="date"
@@ -188,26 +195,26 @@ function EditItem() {
                   value={formData.validade}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required={requereValidade}
                 />
               </div>
             )}
             
-            {/* Only show observacoes field for food items */}
-            {formData.categoria === 'alimentos' && (
-              <div className="mb-4">
-                <label htmlFor="observacoes" className="block text-sm font-medium text-gray-700 mb-1">
-                  Observações (opcional)
-                </label>
-                <textarea
-                  id="observacoes"
-                  name="observacoes"
-                  value={formData.observacoes}
-                  onChange={handleChange}
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                ></textarea>
-              </div>
-            )}
+            {/* Mostrar campo de observações para todas as categorias, obrigatório para 'geral' */}
+            <div className="mb-4">
+              <label htmlFor="observacoes" className="block text-sm font-medium text-gray-700 mb-1">
+                {formData.categoria === 'geral' ? 'Observações' : 'Observações (opcional)'}
+              </label>
+              <textarea
+                id="observacoes"
+                name="observacoes"
+                value={formData.observacoes}
+                onChange={handleChange}
+                rows="3"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                required={formData.categoria === 'geral'}
+              ></textarea>
+            </div>
             
             <div className="flex justify-end space-x-3">
               <button
